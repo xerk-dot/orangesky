@@ -19,12 +19,17 @@ export async function POST(request: Request) {
       password: process.env.BSKY_PASSWORD
     })
 
-    await agent.post({
+    const postResponse = await agent.post({
       text,
       createdAt: new Date().toISOString(),
       langs: ['en']
     })
     
+    console.log('Post response:', {
+      uri: postResponse.uri,
+      cid: postResponse.cid
+    })
+
     return new Response('Posted successfully', { status: 200 })
   } catch (error) {
     console.error('Error posting to Bluesky:', error)
