@@ -7,7 +7,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { text } = await request.json()
+    const body = await request.json() as { text: string }
+    const { text } = body
     
     const agent = new BskyAgent({
       service: 'https://bsky.social'
@@ -29,4 +30,4 @@ export async function POST(request: Request) {
     console.error('Error posting to Bluesky:', error)
     return new Response('Error posting to Bluesky', { status: 500 })
   }
-} 
+}
