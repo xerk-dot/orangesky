@@ -31,7 +31,11 @@ export default function PostForm() {
       setIsPosting(false)
     }
   }
-
+  
+  if (process.env.NEXT_PUBLIC_VERCEL_ENV === 'production') {
+    return null
+  }
+  
   return (
     <div className="flex flex-col gap-4 w-full max-w-md">
       <textarea
