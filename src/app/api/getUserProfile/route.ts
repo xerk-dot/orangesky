@@ -17,9 +17,10 @@ export async function GET() {
     })
 
     //const { data } = await agent.getProfile({ actor: 'did:plc:nlbv2nh67adpas6nhn7muwb4' })
-    //const { data } = await agent.app.bsky.graph.getFollowers({ actor: 'did:plc:nlbv2nh67adpas6nhn7muwb4' })
-    const { data } = await agent.app.bsky.graph.getFollows({ actor: 'did:plc:nlbv2nh67adpas6nhn7muwb4' })
+    //const { data } = await agent.app.bsky.graph.getFollows({ actor: 'did:plc:nlbv2nh67adpas6nhn7muwb4' })
+    const { data } = await agent.app.bsky.graph.getFollowers({ actor: 'did:plc:z72i7hdynmk6r22z27h6tvur' })  //@bluesky.bsky.social
 
+    //@gabrielcoimbraofc.bsky.social starting point for porn
     return Response.json(data)
   } catch (error) {
     console.error('Error fetching profile:', error)
