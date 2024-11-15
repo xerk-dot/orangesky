@@ -37,11 +37,32 @@ export default function PostForm() {
   const handleFetchProfile = async () => {
     try {
       setIsFetching(true)
+      // First fetch the profile data
       const response = await fetch('/api/getUserProfile')
       const data = await response.json()
       setProfileData(data)
+
+      // Then save to Neo4j
+      const neo4jResponse = await fetch('/api/saveToNeo4j', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userData: {
+            did: 'did:plc:z72i7hdynmk6r22z27h6tvur', // The Bluesky user we're fetching
+            name: 'Bluesky Official',
+            email: 'placeholder@email.com'
+          },
+          followersData: data.followers
+        })
+      })
+
+      if (!neo4jResponse.ok) {
+        throw new Error('Failed to save to Neo4j')
+      }
     } catch (error) {
-      console.error('Failed to fetch profile:', error)
+      console.error('Failed to fetch profile or save to Neo4j:', error)
     } finally {
       setIsFetching(false)
     }
