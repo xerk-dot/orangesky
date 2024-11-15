@@ -2,10 +2,32 @@
 
 import { useState } from 'react'
 
+interface BlueskyFollower {
+  did: string
+  handle: string
+  displayName?: string
+}
+
+interface ProfileData {
+  followers: BlueskyFollower[]
+}
+
+interface UserData {
+  did: string
+  name: string
+  handle: string
+  displayName: string
+  isPorn: boolean
+  isMale: boolean
+  isFemale: boolean
+  noSpecifiedGender: boolean
+  discoveredFrom: string
+}
+
 export default function PostForm() {
   const [isPosting, setIsPosting] = useState(false)
   const [text, setText] = useState('')
-  const [profileData, setProfileData] = useState<any>(null)
+  const [profileData, setProfileData] = useState<ProfileData | null>(null)
   const [isFetching, setIsFetching] = useState(false)
 
   const handlePost = async () => {
@@ -39,8 +61,20 @@ export default function PostForm() {
       setIsFetching(true)
       // First fetch the profile data
       const response = await fetch('/api/getUserProfile')
-      const data = await response.json()
+      const data = await response.json() as ProfileData
       setProfileData(data)
+
+      const userData: UserData = {
+        did: 'did:plc:z72i7hdynmk6r22z27h6tvur',
+        name: 'Bluesky Official',
+        handle: 'bluesky.bsky.social',
+        displayName: 'Bluesky Official',
+        isPorn: false,
+        isMale: false,
+        isFemale: false,
+        noSpecifiedGender: true,
+        discoveredFrom: 'seed'
+      }
 
       // Then save to Neo4j
       const neo4jResponse = await fetch('/api/saveToNeo4j', {
@@ -49,11 +83,7 @@ export default function PostForm() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userData: {
-            did: 'did:plc:z72i7hdynmk6r22z27h6tvur', // The Bluesky user we're fetching
-            name: 'Bluesky Official',
-            email: 'placeholder@email.com'
-          },
+          userData,
           followersData: data.followers
         })
       })
@@ -71,7 +101,7 @@ export default function PostForm() {
   if (process.env.NEXT_PUBLIC_VERCEL_ENV === 'production') {
     return null
   }
-  
+
   return (
     <div className="flex flex-col gap-4 w-full max-w-md">
       <textarea

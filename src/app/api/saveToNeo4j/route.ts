@@ -1,21 +1,56 @@
 import { executeNeo4j } from '~/utils/neo4j'
 
+interface BlueskyFollower {
+  did: string
+  handle: string
+  displayName?: string
+}
+
+interface UserData {
+  did: string
+  name: string
+  handle: string
+  displayName: string
+  isPorn: boolean
+  isMale: boolean
+  isFemale: boolean
+  noSpecifiedGender: boolean
+  discoveredFrom: string
+}
+
+interface SaveToNeo4jRequest {
+  userData: UserData
+  followersData: BlueskyFollower[]
+}
+
 export async function POST(request: Request) {
   try {
-    const { userData, followersData } = await request.json()
+    const { userData, followersData } = await request.json() as SaveToNeo4jRequest
     
     // Create/merge the main user
     await executeNeo4j(
       `
       MERGE (u:User {did: $userDid})
       SET u.name = $name,
-          u.email = $email
+          u.handle = $handle,
+          u.displayName = $displayName,
+          u.isPorn = $isPorn,
+          u.isMale = $isMale,
+          u.isFemale = $isFemale,
+          u.noSpecifiedGender = $noSpecifiedGender,
+          u.discoveredFrom = $discoveredFrom
       RETURN u
       `,
       {
         userDid: userData.did,
         name: userData.name,
-        email: userData.email
+        handle: userData.handle,
+        displayName: userData.displayName,
+        isPorn: userData.isPorn,
+        isMale: userData.isMale,
+        isFemale: userData.isFemale,
+        noSpecifiedGender: userData.noSpecifiedGender,
+        discoveredFrom: userData.discoveredFrom
       }
     )
 
