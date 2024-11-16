@@ -6,7 +6,7 @@ async function testConnection() {
   
   try {
     console.log('Attempting to connect to database...');
-    const users = await prisma.BlueskyUser.findMany();
+    const users = await prisma.blueskyUser.findMany();
     console.log('Found users:', users);
     
   } catch (error) {

@@ -1,9 +1,14 @@
 import { BskyAgent } from '@atproto/api';
 import { prisma } from "~/server/db";
 
+// Add interface at the top of the file
+interface RequestBody {
+  handle: string;
+}
+
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body = await request.json() as RequestBody;
     let { handle } = body;
 
     console.log('Analyzing connections for handle:', handle);
@@ -21,7 +26,7 @@ export async function POST(request: Request) {
     }
 
     // First, verify the profile exists in our database
-    const existingProfile = await prisma.BlueskyUser.findFirst({
+    const existingProfile = await prisma.blueskyUser.findFirst({
       where: { handle: handle }
     });
 
@@ -59,7 +64,7 @@ export async function POST(request: Request) {
       });
 
       // Update the main profile
-      await prisma.BlueskyUser.update({
+      await prisma.blueskyUser.update({
         where: { did: existingProfile.did },
         data: {
           isFiftyMostRecentFollowAnalyzed: true,
@@ -70,7 +75,7 @@ export async function POST(request: Request) {
 
       // Process followers
       for (const follower of followers.data.followers) {
-        await prisma.BlueskyUser.upsert({
+        await prisma.blueskyUser.upsert({
           where: { did: follower.did },
           update: {
             handle: follower.handle,
@@ -94,7 +99,7 @@ export async function POST(request: Request) {
 
       // Process following
       for (const follows of following.data.follows) {
-        await prisma.BlueskyUser.upsert({
+        await prisma.blueskyUser.upsert({
           where: { did: follows.did },
           update: {
             handle: follows.handle,

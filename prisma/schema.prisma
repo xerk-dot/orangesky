@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model BlueskyUser {
+model blueskyUser {
   id              String    @id @default(cuid())
   did             String    @unique
   handle          String

@@ -2,6 +2,28 @@
 
 import { useState, useEffect } from 'react'
 
+interface ApiResponse {
+  count: number;
+}
+
+interface ProfileResponse {
+  success: boolean;
+  user: {
+    handle: string;
+  };
+  error?: string;
+  details?: string;
+}
+
+interface AnalyzeResponse {
+  success: boolean;
+  followersAdded: number;
+  followingAdded: number;
+  profile: string;
+  error?: string;
+  details?: string;
+}
+
 export default function PostForm() {
   const [targetProfile, setTargetProfile] = useState('')
   const [isFetching, setIsFetching] = useState(false)
@@ -14,7 +36,7 @@ export default function PostForm() {
     try {
       const response = await fetch('/api/getUserProfile/count')
       if (!response.ok) throw new Error('Failed to fetch count')
-      const data = await response.json()
+      const data = await response.json() as ApiResponse
       setTotalRows(data.count)
     } catch (err) {
       console.error('Error fetching count:', err)
@@ -22,7 +44,7 @@ export default function PostForm() {
   }
 
   useEffect(() => {
-    fetchTotalRows()
+    void fetchTotalRows()
   }, [])
 
   const handleFetchProfile = async () => {
@@ -40,14 +62,14 @@ export default function PostForm() {
         body: JSON.stringify({ handle: targetProfile.trim() }),
       })
 
-      const data = await response.json()
+      const data = await response.json() as ProfileResponse
       
       if (!response.ok) {
-        throw new Error(data.details || data.error || 'Failed to fetch profile')
+        throw new Error(data.details ?? data.error ?? 'Failed to fetch profile')
       }
 
       console.log('Profile processed:', data)
-      setLastAddedProfile(data.user.handle)  // Save the last added profile
+      setLastAddedProfile(data.user.handle)
       setTargetProfile('')
       await fetchTotalRows()
       
@@ -74,10 +96,10 @@ export default function PostForm() {
         body: JSON.stringify({ handle: lastAddedProfile }),
       });
 
-      const data = await response.json();
+      const data = await response.json() as AnalyzeResponse;
       
       if (!response.ok) {
-        throw new Error(data.details || data.error || 'Failed to analyze connections');
+        throw new Error(data.details ?? data.error ?? 'Failed to analyze connections');
       }
 
       console.log('Connections analyzed:', data);
