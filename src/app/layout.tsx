@@ -4,6 +4,7 @@ import { Header } from "./_components/header";
 import { Footer } from "./_components/footer";
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
+import { HeaderBar } from "./_components/headerbar";
 
 import { TRPCReactProvider } from "~/trpc/react";
 
@@ -20,6 +21,7 @@ export default function RootLayout({
     <html lang="en" className={`${GeistSans.variable}`}>
       <body>
         <Header />
+        <HeaderBar />
         <TRPCReactProvider>{children}</TRPCReactProvider>
         <Footer />
       </body>
