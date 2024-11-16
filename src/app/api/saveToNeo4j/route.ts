@@ -1,6 +1,6 @@
 import { executeNeo4j } from '~/utils/neo4j'
 
-interface BlueskyFollower {
+interface BlueskyUser {
   did: string
   handle: string
   displayName?: string
@@ -20,25 +20,31 @@ interface UserData {
 
 interface SaveToNeo4jRequest {
   userData: UserData
-  followersData: BlueskyFollower[]
+  followersData: BlueskyUser[]
+  followingData: BlueskyUser[]
 }
 
 export async function POST(request: Request) {
   try {
-    const { userData, followersData } = await request.json() as SaveToNeo4jRequest
+    const { userData, followersData, followingData } = await request.json()
     
-    // Create/merge the main user
+    // Create/merge the main user node
     await executeNeo4j(
       `
       MERGE (u:User {did: $userDid})
-      SET u.name = $name,
-          u.handle = $handle,
-          u.displayName = $displayName,
-          u.isPorn = $isPorn,
-          u.isMale = $isMale,
-          u.isFemale = $isFemale,
-          u.noSpecifiedGender = $noSpecifiedGender,
-          u.discoveredFrom = $discoveredFrom
+      ON CREATE SET 
+        u.name = $name,
+        u.handle = $handle,
+        u.displayName = $displayName,
+        u.isPorn = $isPorn,
+        u.isMale = $isMale,
+        u.isFemale = $isFemale,
+        u.noSpecifiedGender = $noSpecifiedGender,
+        u.discoveredFrom = $discoveredFrom
+      ON MATCH SET
+        u.name = $name,
+        u.handle = $handle,
+        u.displayName = $displayName
       RETURN u
       `,
       {
@@ -54,23 +60,50 @@ export async function POST(request: Request) {
       }
     )
 
-    // Create followers and relationships in batch
-    const batchSize = 50
-    for (let i = 0; i < followersData.length; i += batchSize) {
-      const batch = followersData.slice(i, i + batchSize)
+    // Create followers relationships
+    if (followersData?.length > 0) {
       await executeNeo4j(
         `
         UNWIND $followers AS follower
         MERGE (f:User {did: follower.did})
-        SET f.handle = follower.handle,
-            f.displayName = follower.displayName
+        ON CREATE SET
+          f.handle = follower.handle,
+          f.displayName = follower.displayName,
+          f.discoveredFrom = 'follower'
+        ON MATCH SET
+          f.handle = follower.handle,
+          f.displayName = follower.displayName
         WITH f
         MATCH (u:User {did: $userDid})
         MERGE (f)-[:FOLLOWS]->(u)
         `,
         {
           userDid: userData.did,
-          followers: batch
+          followers: followersData
+        }
+      )
+    }
+
+    // Create following relationships
+    if (followingData?.length > 0) {
+      await executeNeo4j(
+        `
+        UNWIND $following AS follow
+        MERGE (f:User {did: follow.did})
+        ON CREATE SET
+          f.handle = follow.handle,
+          f.displayName = follow.displayName,
+          f.discoveredFrom = 'following'
+        ON MATCH SET
+          f.handle = follow.handle,
+          f.displayName = follow.displayName
+        WITH f
+        MATCH (u:User {did: $userDid})
+        MERGE (u)-[:FOLLOWS]->(f)
+        `,
+        {
+          userDid: userData.did,
+          following: followingData
         }
       )
     }
