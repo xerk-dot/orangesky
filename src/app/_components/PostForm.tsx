@@ -5,14 +5,14 @@ import { useState, useEffect } from 'react'
 export default function PostForm() {
   const [targetProfile, setTargetProfile] = useState('')
   const [isFetching, setIsFetching] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [error, setError] = useState('')
   const [totalRows, setTotalRows] = useState<number>(0)
+  const [lastAddedProfile, setLastAddedProfile] = useState<string | null>(null)
 
   const fetchTotalRows = async () => {
     try {
-      const response = await fetch('/api/getUserProfile/count', {
-        method: 'GET',
-      })
+      const response = await fetch('/api/getUserProfile/count')
       if (!response.ok) throw new Error('Failed to fetch count')
       const data = await response.json()
       setTotalRows(data.count)
@@ -40,14 +40,16 @@ export default function PostForm() {
         body: JSON.stringify({ handle: targetProfile.trim() }),
       })
 
+      const data = await response.json()
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch profile')
+        throw new Error(data.details || data.error || 'Failed to fetch profile')
       }
 
-      const data = await response.json()
-      console.log('Profile saved:', data)
+      console.log('Profile processed:', data)
+      setLastAddedProfile(data.user.handle)  // Save the last added profile
       setTargetProfile('')
-      fetchTotalRows()
+      await fetchTotalRows()
       
     } catch (err) {
       console.error('Error:', err)
@@ -56,6 +58,38 @@ export default function PostForm() {
       setIsFetching(false)
     }
   }
+
+  const handleAnalyzeConnections = async () => {
+    if (!lastAddedProfile) return;
+    
+    setIsAnalyzing(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/analyzeConnections', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ handle: lastAddedProfile }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.details || data.error || 'Failed to analyze connections');
+      }
+
+      console.log('Connections analyzed:', data);
+      await fetchTotalRows();
+      
+    } catch (err) {
+      console.error('Error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to analyze connections');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow">
@@ -68,14 +102,14 @@ export default function PostForm() {
           type="text"
           value={targetProfile}
           onChange={(e) => setTargetProfile(e.target.value)}
-          placeholder="e.g., jay.bsky.social"
+          placeholder="e.g., username.bsky.social"
           className="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
           disabled={isFetching}
         />
       </div>
 
       {error && (
-        <div className="mb-4 text-red-500 text-sm">
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded text-sm">
           {error}
         </div>
       )}
@@ -83,14 +117,24 @@ export default function PostForm() {
       <button
         onClick={handleFetchProfile}
         disabled={isFetching || !targetProfile.trim()}
-        className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed mb-4"
       >
         {isFetching ? 'Fetching Profile...' : 'Fetch Profile'}
       </button>
+
+      {lastAddedProfile && (
+        <button
+          onClick={handleAnalyzeConnections}
+          disabled={isAnalyzing}
+          className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isAnalyzing ? 'Analyzing Connections...' : `Analyze ${lastAddedProfile}'s Connections`}
+        </button>
+      )}
 
       <div className="mt-4 text-center text-sm text-gray-600">
         Total profiles in database: {totalRows}
       </div>
     </div>
-  )
+  );
 } 
