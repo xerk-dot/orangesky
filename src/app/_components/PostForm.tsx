@@ -8,8 +8,24 @@ interface BlueskyFollower {
   displayName?: string
 }
 
+interface ProfileResponse {
+  did: string
+  handle: string
+  displayName: string
+  name: string
+  followers: BlueskyFollower[]
+}
+
 interface ProfileData {
   followers: BlueskyFollower[]
+  did: string
+  handle: string
+  displayName: string
+  name: string
+}
+
+interface ErrorResponse {
+  error: string
 }
 
 interface UserData {
@@ -67,14 +83,24 @@ export default function PostForm() {
       setError(null)
       setIsFetching(true)
       
+      // Remove @ if present at the start of the handle
+      const cleanedProfile = targetProfile.startsWith('@') 
+        ? targetProfile.slice(1) 
+        : targetProfile
+      
       // First fetch the profile data
-      const response = await fetch(`/api/getUserProfile?profile=${encodeURIComponent(targetProfile)}`)
-      const data = await response.json()
+      const response = await fetch(`/api/getUserProfile?profile=${encodeURIComponent(cleanedProfile)}`)
+      const responseData = await response.json() as ProfileResponse | ErrorResponse
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch profile')
+        throw new Error('error' in responseData ? responseData.error : 'Failed to fetch profile')
       }
       
+      if (!('followers' in responseData)) {
+        throw new Error('Invalid profile data received')
+      }
+
+      const data: ProfileData = responseData
       setProfileData(data)
 
       // Then save to Neo4j
@@ -85,10 +111,10 @@ export default function PostForm() {
         },
         body: JSON.stringify({
           userData: {
-            did: targetProfile.startsWith('did:') ? targetProfile : data.did,
-            name: data.name || targetProfile,
-            handle: data.handle || targetProfile,
-            displayName: data.displayName || targetProfile,
+            did: cleanedProfile.startsWith('did:') ? cleanedProfile : data.did,
+            name: data.name || cleanedProfile,
+            handle: data.handle || cleanedProfile,
+            displayName: data.displayName || cleanedProfile,
             isPorn: false,
             isMale: false,
             isFemale: false,
@@ -99,18 +125,17 @@ export default function PostForm() {
         })
       })
 
-      const neo4jData = await neo4jResponse.json()
+      const neo4jResponseData = await neo4jResponse.json() as ErrorResponse | { success: true }
       
       if (!neo4jResponse.ok) {
-        throw new Error(neo4jData.error || 'Failed to save to Neo4j')
+        throw new Error('error' in neo4jResponseData ? neo4jResponseData.error : 'Failed to save to Neo4j')
       }
 
-      // Success message
       setError(null)
     } catch (err) {
-      const error = err as Error
-      setError(error.message)
-      console.error('Failed to fetch profile or save to Neo4j:', error)
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred'
+      setError(errorMessage)
+      console.error('Failed to fetch profile or save to Neo4j:', err)
     } finally {
       setIsFetching(false)
     }
