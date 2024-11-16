@@ -1,7 +1,14 @@
 import { BskyAgent } from '@atproto/api'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url)
+    const profile = searchParams.get('profile')
+
+    if (!profile) {
+      return Response.json({ error: 'Profile parameter is required' }, { status: 400 })
+    }
+
     if (!process.env.BSKY_IDENTIFIER || !process.env.BSKY_PASSWORD) {
       console.error('Missing Bluesky credentials in environment variables')
       return Response.json({ error: 'Server configuration error' }, { status: 500 })
@@ -16,14 +23,28 @@ export async function GET() {
       password: process.env.BSKY_PASSWORD
     })
 
-    //const { data } = await agent.getProfile({ actor: 'did:plc:nlbv2nh67adpas6nhn7muwb4' })
-    //const { data } = await agent.app.bsky.graph.getFollows({ actor: 'did:plc:nlbv2nh67adpas6nhn7muwb4' })
-    const { data } = await agent.app.bsky.graph.getFollowers({ actor: 'did:plc:z72i7hdynmk6r22z27h6tvur' })  //@bluesky.bsky.social
+    // First get the profile info
+    const profileInfo = await agent.getProfile({ actor: profile })
+    
+    // Then get the followers
+    const followersResponse = await agent.app.bsky.graph.getFollowers({ actor: profile })
 
-    //@gabrielcoimbraofc.bsky.social starting point for porn
-    return Response.json(data)
+    // Combine and return the data
+    return Response.json({
+      did: profileInfo.data.did,
+      handle: profileInfo.data.handle,
+      displayName: profileInfo.data.displayName,
+      name: profileInfo.data.displayName, // Using displayName as name if not available
+      followers: followersResponse.data.followers.map(follower => ({
+        did: follower.did,
+        handle: follower.handle,
+        displayName: follower.displayName
+      }))
+    })
   } catch (error) {
     console.error('Error fetching profile:', error)
-    return Response.json({ error: 'Failed to fetch profile' }, { status: 500 })
+    return Response.json({ 
+      error: error instanceof Error ? error.message : 'Failed to fetch profile' 
+    }, { status: 500 })
   }
 } 
