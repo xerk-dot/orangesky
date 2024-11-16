@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-interface BlueskyFollower {
+interface BlueskyUser {
   did: string
   handle: string
   displayName?: string
@@ -13,11 +13,13 @@ interface ProfileResponse {
   handle: string
   displayName: string
   name: string
-  followers: BlueskyFollower[]
+  followers: BlueskyUser[]
+  following: BlueskyUser[]
 }
 
 interface ProfileData {
-  followers: BlueskyFollower[]
+  followers: BlueskyUser[]
+  following: BlueskyUser[]
   did: string
   handle: string
   displayName: string
@@ -121,7 +123,8 @@ export default function PostForm() {
             noSpecifiedGender: true,
             discoveredFrom: 'manual'
           },
-          followersData: data.followers
+          followersData: data.followers,
+          followingData: data.following
         })
       })
 
@@ -136,6 +139,39 @@ export default function PostForm() {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred'
       setError(errorMessage)
       console.error('Failed to fetch profile or save to Neo4j:', err)
+    } finally {
+      setIsFetching(false)
+    }
+  }
+
+  const handleLookupProfile = async () => {
+    if (!targetProfile.trim()) {
+      setError('Please enter a profile handle or DID')
+      return
+    }
+
+    try {
+      setError(null)
+      setIsFetching(true)
+      
+      const cleanedProfile = targetProfile.startsWith('@') 
+        ? targetProfile.slice(1) 
+        : targetProfile
+      
+      // Only fetch the profile info, not followers
+      const response = await fetch(`/api/getUserProfile?profile=${encodeURIComponent(cleanedProfile)}&followersNotNeeded=true`)
+      const responseData = await response.json() as ProfileResponse | ErrorResponse
+      
+      if (!response.ok) {
+        throw new Error('error' in responseData ? responseData.error : 'Failed to fetch profile')
+      }
+      
+      setProfileData(responseData as ProfileData)
+      setError(null)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred'
+      setError(errorMessage)
+      console.error('Failed to lookup profile:', err)
     } finally {
       setIsFetching(false)
     }
@@ -182,7 +218,14 @@ export default function PostForm() {
           disabled={isFetching || !targetProfile.trim()}
           className="p-2 bg-green-500 text-white rounded disabled:opacity-50"
         >
-          {isFetching ? 'Fetching...' : 'Fetch Profile'}
+          {isFetching ? 'Fetching...' : 'Fetch & Save'}
+        </button>
+        <button 
+          onClick={handleLookupProfile}
+          disabled={isFetching || !targetProfile.trim()}
+          className="p-2 bg-yellow-500 text-white rounded disabled:opacity-50"
+        >
+          {isFetching ? 'Looking up...' : 'Lookup Only'}
         </button>
       </div>
 
