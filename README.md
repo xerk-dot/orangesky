@@ -25,3 +25,20 @@ http://localhost:7474/browser/
 ```
 MATCH (n:User) DETACH DELETE n
 ```
+
+//verify postgres is running
+docker ps
+docker logs orangesky-postgres
+docker exec -it orangesky-postgres psql -U postgres
+docker exec -it orangesky-postgres psql -U postgres -d orangesky
+//list all databases
+\l
+
+//list all roles/users
+\du
+
+//sign in to postgres
+docker exec -it orangesky-postgres psql -U postgres -W
+
+//signin to postgres with connection string
+psql postgresql://postgres:password@localhost:5432/orangesky
