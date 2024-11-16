@@ -1,6 +1,7 @@
+import { type Response } from 'node-fetch';
 import { checkRateLimit } from '../utils/rateLimit';
 
-async function testApiCall() {
+async function testApiCall(): Promise<void> {
     try {
         const response = await fetch('your-api-endpoint');
         const rateLimitStatus = checkRateLimit(response);
@@ -13,14 +14,13 @@ async function testApiCall() {
             console.log(`Remaining calls: ${rateLimitStatus.remaining}/${rateLimitStatus.limit}`);
         }
         
-        // Optional: log the response data
-        const data = await response.json();
+        const data = await response.json() as Record<string, unknown>;
         console.log('\nResponse Data:', data);
         
     } catch (error) {
-        console.error('\n❌ Error:', error.message);
+        console.error('\n❌ Error:', error instanceof Error ? error.message : String(error));
     }
 }
 
 // Run the test
-testApiCall(); 
+void testApiCall(); 

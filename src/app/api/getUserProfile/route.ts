@@ -1,23 +1,26 @@
 import { BskyAgent } from '@atproto/api'
 import { prisma } from '~/server/db'
-import { env } from '~/env'
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { z } from 'zod'
 
-if (!process.env.BSKY_IDENTIFIER || !process.env.BSKY_PASSWORD) {
-  console.error('Missing Bluesky credentials in environment variables');
-}
+// Define request body schema
+const requestSchema = z.object({
+  handle: z.string().min(1),
+});
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    let { handle } = body;
-
-    if (!handle) {
+    // Add proper typing for the raw body
+    const rawBody = await request.json() as z.infer<typeof requestSchema>;
+    const result = requestSchema.safeParse(rawBody);
+    
+    if (!result.success) {
       return Response.json({ 
-        error: "Handle is required",
-        details: "Please provide a Bluesky handle"
+        error: "Invalid request",
+        details: "Please provide a valid Bluesky handle"
       }, { status: 400 });
     }
+
+    let handle: string = result.data.handle;
 
     // Clean and validate the handle
     handle = handle.trim().toLowerCase();
@@ -38,17 +41,11 @@ export async function POST(request: Request) {
     });
 
     try {
-      console.log('Attempting login with:', {
-        identifier: process.env.BSKY_IDENTIFIER,
-        passwordPresent: !!process.env.BSKY_PASSWORD
-      });
-
       await agent.login({
         identifier: process.env.BSKY_IDENTIFIER,
         password: process.env.BSKY_PASSWORD
       });
 
-      console.log('Fetching profile for:', handle);
       const profile = await agent.getProfile({ actor: handle });
 
       if (!profile?.data?.did) {
@@ -58,7 +55,7 @@ export async function POST(request: Request) {
         }, { status: 400 });
       }
 
-      const user = await prisma.BlueskyUser.upsert({
+      const user = await prisma.blueskyUser.upsert({
         where: { did: profile.data.did },
         update: {
           handle: profile.data.handle,
@@ -86,28 +83,29 @@ export async function POST(request: Request) {
         message: "Profile fetched and saved successfully"
       });
 
-    } catch (profileError: any) {
+    } catch (profileError) {
+      const error = profileError as Error;
       console.error('Profile error:', {
-        message: profileError.message,
-        stack: profileError.stack,
-        response: profileError.response?.data
+        message: error.message,
+        stack: error.stack,
       });
       
       return Response.json({ 
         error: "Bluesky API error",
-        details: profileError.message || "Failed to fetch profile from Bluesky"
+        details: error.message || "Failed to fetch profile from Bluesky"
       }, { status: 502 });
     }
-
-  } catch (error: any) {
+    
+  } catch (error) {
+    const err = error as Error;
     console.error('General error:', {
-      message: error.message,
-      stack: error.stack
+      message: err.message,
+      stack: err.stack
     });
     
     return Response.json({ 
       error: "Internal server error",
-      details: error.message || "An unexpected error occurred"
+      details: err.message
     }, { status: 500 });
   }
 } 
