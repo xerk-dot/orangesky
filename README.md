@@ -38,4 +38,3 @@ psql postgresql://postgres:password@localhost:5432/orangesky
 // Prisma 
 
 pnpm prisma migrate dev --name add_follower_counts_and_bio
-

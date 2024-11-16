@@ -1,206 +1,96 @@
 'use client'
 
-import { useState } from 'react'
-
-interface BlueskyUser {
-  did: string
-  handle: string
-  displayName?: string
-}
-
-interface ProfileResponse {
-  did: string
-  handle: string
-  displayName: string
-  name: string
-  followers: BlueskyUser[]
-  following: BlueskyUser[]
-}
-
-interface ProfileData {
-  followers: BlueskyUser[]
-  following: BlueskyUser[]
-  did: string
-  handle: string
-  displayName: string
-  name: string
-}
-
-interface ErrorResponse {
-  error: string
-}
-
-interface UserData {
-  did: string
-  name: string
-  handle: string
-  displayName: string
-  isPorn: boolean
-  isMale: boolean
-  isFemale: boolean
-  noSpecifiedGender: boolean
-  discoveredFrom: string
-}
+import { useState, useEffect } from 'react'
 
 export default function PostForm() {
-  const [isPosting, setIsPosting] = useState(false)
-  const [text, setText] = useState('')
-  const [profileData, setProfileData] = useState<ProfileData | null>(null)
-  const [isFetching, setIsFetching] = useState(false)
   const [targetProfile, setTargetProfile] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [isFetching, setIsFetching] = useState(false)
+  const [error, setError] = useState('')
+  const [totalRows, setTotalRows] = useState<number>(0)
 
-  const handlePost = async () => {
-    if (!text.trim()) return
-    
+  const fetchTotalRows = async () => {
     try {
-      setIsPosting(true)
-      const response = await fetch('/api/post', {
+      const response = await fetch('/api/getUserProfile/count', {
+        method: 'GET',
+      })
+      if (!response.ok) throw new Error('Failed to fetch count')
+      const data = await response.json()
+      setTotalRows(data.count)
+    } catch (err) {
+      console.error('Error fetching count:', err)
+    }
+  }
+
+  useEffect(() => {
+    fetchTotalRows()
+  }, [])
+
+  const handleFetchProfile = async () => {
+    if (!targetProfile.trim()) return
+    
+    setIsFetching(true)
+    setError('')
+
+    try {
+      const response = await fetch('/api/getUserProfile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({ handle: targetProfile.trim() }),
       })
-      
+
       if (!response.ok) {
-        throw new Error('Failed to post')
-      }
-      
-      setText('')
-    } catch (error) {
-      console.error('Failed to post:', error)
-    } finally {
-      setIsPosting(false)
-    }
-  }
-  
-  const handleFetchProfile = async () => {
-    if (!targetProfile.trim()) {
-      setError('Please enter a profile handle or DID')
-      return
-    }
-
-    try {
-      setError(null)
-      setIsFetching(true)
-      
-      // Remove @ if present at the start of the handle
-      const cleanedProfile = targetProfile.startsWith('@') 
-        ? targetProfile.slice(1) 
-        : targetProfile
-      
-      // First fetch the profile data
-      const response = await fetch(`/api/getUserProfile?profile=${encodeURIComponent(cleanedProfile)}`)
-      const responseData = await response.json() as ProfileResponse | ErrorResponse
-      
-      if (!response.ok) {
-        throw new Error('error' in responseData ? responseData.error : 'Failed to fetch profile')
-      }
-      
-      if (!('followers' in responseData)) {
-        throw new Error('Invalid profile data received')
+        throw new Error('Failed to fetch profile')
       }
 
-      const data: ProfileData = responseData
-      setProfileData(data)
-
+      const data = await response.json()
+      console.log('Profile saved:', data)
+      setTargetProfile('')
+      fetchTotalRows()
       
-      setError(null)
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred'
-      setError(errorMessage)
+      console.error('Error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to fetch profile')
     } finally {
       setIsFetching(false)
     }
-  }
-
-  const handleLookupProfile = async () => {
-    if (!targetProfile.trim()) {
-      setError('Please enter a profile handle or DID')
-      return
-    }
-
-    try {
-      setError(null)
-      setIsFetching(true)
-      
-      const cleanedProfile = targetProfile.startsWith('@') 
-        ? targetProfile.slice(1) 
-        : targetProfile
-      
-      // Only fetch the profile info, not followers
-      const response = await fetch(`/api/getUserProfile?profile=${encodeURIComponent(cleanedProfile)}&followersNotNeeded=true`)
-      const responseData = await response.json() as ProfileResponse | ErrorResponse
-      
-      if (!response.ok) {
-        throw new Error('error' in responseData ? responseData.error : 'Failed to fetch profile')
-      }
-      
-      setProfileData(responseData as ProfileData)
-      setError(null)
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred'
-      setError(errorMessage)
-      console.error('Failed to lookup profile:', err)
-    } finally {
-      setIsFetching(false)
-    }
-  }
-
-  if (process.env.NEXT_PUBLIC_VERCEL_ENV === 'production') {
-    return null
   }
 
   return (
-    <div className="flex flex-col gap-4 w-full max-w-md">
-      <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="What's on your mind?"
-        className="p-2 border border-gray-600 rounded bg-transparent text-white placeholder-gray-400 focus:outline-none focus:border-gray-400"
-        disabled={isPosting}
-        style={{ color: 'white' }}
-      />
-
-      <div className="flex flex-col gap-2">
+    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow">
+      <div className="mb-4">
+        <label htmlFor="profile" className="block text-sm font-medium text-gray-700 mb-2">
+          Bluesky Handle
+        </label>
         <input
+          id="profile"
           type="text"
           value={targetProfile}
           onChange={(e) => setTargetProfile(e.target.value)}
-          placeholder="Enter Bluesky handle or DID"
-          className="p-2 border border-gray-600 rounded bg-transparent text-white placeholder-gray-400 focus:outline-none focus:border-gray-400"
+          placeholder="e.g., jay.bsky.social"
+          className="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
           disabled={isFetching}
-          style={{ color: 'white' }}
         />
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-      </div>
-      
-      <div className="flex gap-2">
-        <button 
-          onClick={handlePost} 
-          disabled={isPosting || !text.trim()}
-          className="p-2 bg-blue-500 text-white rounded disabled:opacity-50"
-        >
-          {isPosting ? 'Posting...' : 'Post to Bluesky'}
-        </button>
-        <button 
-          onClick={handleFetchProfile}
-          disabled={isFetching || !targetProfile.trim()}
-          className="p-2 bg-green-500 text-white rounded disabled:opacity-50"
-        >
-          {isFetching ? 'Fetching...' : 'Get Profile'}
-        </button>
       </div>
 
-      {profileData && (
-        <div className="mt-4 p-4 bg-gray-800 rounded">
-          <h3 className="font-bold text-white">Profile Data:</h3>
-          <pre className="text-sm overflow-auto text-white">
-            {JSON.stringify(profileData, null, 2)}
-          </pre>
+      {error && (
+        <div className="mb-4 text-red-500 text-sm">
+          {error}
         </div>
       )}
+
+      <button
+        onClick={handleFetchProfile}
+        disabled={isFetching || !targetProfile.trim()}
+        className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isFetching ? 'Fetching Profile...' : 'Fetch Profile'}
+      </button>
+
+      <div className="mt-4 text-center text-sm text-gray-600">
+        Total profiles in database: {totalRows}
+      </div>
     </div>
   )
 } 

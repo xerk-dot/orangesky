@@ -7,69 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id            String    @id @default(uuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime? @map("email_verified")
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  posts         Post[]
-
-  @@map("orangesky_user")
-}
-
-model Account {
-  id                String  @id @default(cuid())
-  userId            String  @map("user_id")
-  type              String
-  provider          String
-  providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-  @@map("orangesky_account")
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique @map("session_token")
-  userId       String   @map("user_id")
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("orangesky_session")
-}
-
-model Post {
-  id        String   @id @default(cuid())
-  name      String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String   @map("user_id")
-
-  @@map("orangesky_post")
-}
-
-model VerificationToken {
-  identifier String
-  token      String
-  expires    DateTime
-
-  @@unique([identifier, token])
-  @@map("orangesky_verification_token")
-}
-
 model BlueskyUser {
   id              String    @id @default(cuid())
   did             String    @unique
@@ -78,7 +15,8 @@ model BlueskyUser {
   bio             String?   // Optional bio text
   numOfFollowers  Int       @default(0)
   numOfFollowing  Int       @default(0)
-  isAnalyzed      Boolean   @default(false)
+  isFiftyMostRecentFollowAnalyzed      Boolean   @default(false)
+  isProfileAnalyzed      Boolean   @default(false)
   isIndividual    Float     @default(0) // 0 to 1
   isMale          Float     @default(0) // 0 to 1
   updatedAt       DateTime  @updatedAt

@@ -1,108 +1,112 @@
 import { BskyAgent } from '@atproto/api'
+import { prisma } from '~/server/db'
+import { env } from '~/env'
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
+  if (!process.env.BSKY_IDENTIFIER || !process.env.BSKY_PASSWORD) {
+    console.error('Missing Bluesky credentials in environment variables')
+    return new Response('Server configuration error', { status: 500 })
+  }
+
   try {
-    const { searchParams } = new URL(request.url)
-    let profile = searchParams.get('profile')
-
-    if (!profile) {
-      return Response.json({ error: 'Profile parameter is required' }, { status: 400 })
-    }
-
-    // Handle different profile formats
-    if (!profile.startsWith('did:') && !profile.includes('.')) {
-      profile = `${profile}.bsky.social`
-    }
-
-    if (!process.env.BSKY_IDENTIFIER || !process.env.BSKY_PASSWORD) {
-      console.error('Missing Bluesky credentials in environment variables')
-      return Response.json({ error: 'Server configuration error' }, { status: 500 })
-    }
-
+    const { handle } = await request.json()
+    
     const agent = new BskyAgent({
       service: 'https://bsky.social'
     })
 
+    // Login to Bluesky
     await agent.login({
       identifier: process.env.BSKY_IDENTIFIER,
-      password: process.env.BSKY_PASSWORD
+      password: process.env.BSKY_PASSWORD,
     })
 
-    try {
-      // First try with the profile as-is
-      const profileInfo = await agent.getProfile({ actor: profile })
-      
-      const followersNotNeeded = searchParams.get('followersNotNeeded') === 'true'
+    // Get the profile
+    const profile = await agent.getProfile({ actor: handle })
+    
+    // Get followers and following counts
+    const followers = await agent.getFollowers({ actor: handle })
+    const following = await agent.getFollows({ actor: handle })
 
-      if (followersNotNeeded) {
-        return Response.json({
-          did: profileInfo.data.did,
-          handle: profileInfo.data.handle,
-          displayName: profileInfo.data.displayName,
-          name: profileInfo.data.displayName,
-          followers: [],
-          following: []
-        })
-      }
+    // Upsert the main profile
+    const user = await prisma.BlueskyUser.upsert({
+      where: { did: profile.data.did },
+      update: {
+        handle: profile.data.handle,
+        displayName: profile.data.displayName ?? null,
+        bio: profile.data.description ?? null,
+        numOfFollowers: followers.data.total,
+        numOfFollowing: following.data.total,
+        updatedAt: new Date(),
+      },
+      create: {
+        did: profile.data.did,
+        handle: profile.data.handle,
+        displayName: profile.data.displayName ?? null,
+        bio: profile.data.description ?? null,
+        numOfFollowers: followers.data.total,
+        numOfFollowing: following.data.total,
+        isAnalyzed: false,
+        isIndividual: 0,
+        isMale: 0,
+      },
+    })
 
-      // Get both followers and following
-      const [followersResponse, followingResponse] = await Promise.all([
-        agent.app.bsky.graph.getFollowers({ actor: profile, limit: 50 }),
-        agent.app.bsky.graph.getFollows({ actor: profile, limit: 50 })
-      ])
+    console.log('Saved user:', user)
 
-      return Response.json({
-        did: profileInfo.data.did,
-        handle: profileInfo.data.handle,
-        displayName: profileInfo.data.displayName,
-        name: profileInfo.data.displayName,
-        followers: followersResponse.data.followers.map(follower => ({
+    // Also save all followers
+    for (const follower of followers.data.followers) {
+      await prisma.BlueskyUser.upsert({
+        where: { did: follower.did },
+        update: {
+          handle: follower.handle,
+          displayName: follower.displayName ?? null,
+          updatedAt: new Date(),
+        },
+        create: {
           did: follower.did,
           handle: follower.handle,
-          displayName: follower.displayName
-        })),
-        following: followingResponse.data.follows.map(follow => ({
-          did: follow.did,
-          handle: follow.handle,
-          displayName: follow.displayName
-        }))
+          displayName: follower.displayName ?? null,
+          isAnalyzed: false,
+          isIndividual: 0,
+          isMale: 0,
+          numOfFollowers: 0,  // We'll update these later if this profile is searched
+          numOfFollowing: 0,
+          bio: null,
+        },
       })
-    } catch (profileError) {
-      // If that fails, try with .bsky.social appended
-      try {
-        const fullHandle = profile.includes('.') ? profile : `${profile}.bsky.social`
-        const profileInfo = await agent.getProfile({ actor: fullHandle })
-        
-        // Get both followers and following
-        const [followersResponse, followingResponse] = await Promise.all([
-          agent.app.bsky.graph.getFollowers({ actor: fullHandle, limit: 50 }),
-          agent.app.bsky.graph.getFollows({ actor: fullHandle, limit: 50 })
-        ])
-
-        return Response.json({
-          did: profileInfo.data.did,
-          handle: profileInfo.data.handle,
-          displayName: profileInfo.data.displayName,
-          name: profileInfo.data.displayName,
-          followers: followersResponse.data.followers.map(follower => ({
-            did: follower.did,
-            handle: follower.handle,
-            displayName: follower.displayName
-          })),
-          following: followingResponse.data.follows.map(follow => ({
-            did: follow.did,
-            handle: follow.handle,
-            displayName: follow.displayName
-          }))
-        })
-      } catch (retryError) {
-        throw new Error('Profile not found with any handle format')
-      }
     }
+
+    // And save all following
+    for (const follows of following.data.follows) {
+      await prisma.BlueskyUser.upsert({
+        where: { did: follows.did },
+        update: {
+          handle: follows.handle,
+          displayName: follows.displayName ?? null,
+          updatedAt: new Date(),
+        },
+        create: {
+          did: follows.did,
+          handle: follows.handle,
+          displayName: follows.displayName ?? null,
+          isAnalyzed: false,
+          isIndividual: 0,
+          isMale: 0,
+          numOfFollowers: 0,
+          numOfFollowing: 0,
+          bio: null,
+        },
+      })
+    }
+
+    return new Response(JSON.stringify(user), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    })
+
   } catch (error) {
     console.error('Error fetching profile:', error)
-    return Response.json({ 
-      error: error instanceof Error ? error.message : 'Failed to fetch profile' 
-    }, { status: 500 })
+    return new Response('Error fetching profile', { status: 500 })
   }
 } 

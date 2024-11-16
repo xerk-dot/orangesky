@@ -6,9 +6,8 @@ async function testConnection() {
   
   try {
     console.log('Attempting to connect to database...');
-    const result = await prisma.$queryRaw`SELECT 1 + 1 as result`;
-    console.log('✅ Database connection successful!');
-    console.log('Test query result:', result);
+    const users = await prisma.BlueskyUser.findMany();
+    console.log('Found users:', users);
     
   } catch (error) {
     console.error('❌ Database connection failed:', error);

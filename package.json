@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "check": "next lint && tsc --noEmit",
+    "db:test-connection": "tsx scripts/test-db.ts",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:migrate": "prisma migrate",
+    "db:migrate": "prisma migrate dev --name add_follower_counts_and_bio",
     "db:studio": "prisma studio",
     "dev": "next dev --turbo",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
