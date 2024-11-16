@@ -105,40 +105,11 @@ export default function PostForm() {
       const data: ProfileData = responseData
       setProfileData(data)
 
-      // Then save to Neo4j
-      const neo4jResponse = await fetch('/api/saveToNeo4j', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userData: {
-            did: cleanedProfile.startsWith('did:') ? cleanedProfile : data.did,
-            name: data.name || cleanedProfile,
-            handle: data.handle || cleanedProfile,
-            displayName: data.displayName || cleanedProfile,
-            isPorn: false,
-            isMale: false,
-            isFemale: false,
-            noSpecifiedGender: true,
-            discoveredFrom: 'manual'
-          },
-          followersData: data.followers,
-          followingData: data.following
-        })
-      })
-
-      const neo4jResponseData = await neo4jResponse.json() as ErrorResponse | { success: true }
       
-      if (!neo4jResponse.ok) {
-        throw new Error('error' in neo4jResponseData ? neo4jResponseData.error : 'Failed to save to Neo4j')
-      }
-
       setError(null)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred'
       setError(errorMessage)
-      console.error('Failed to fetch profile or save to Neo4j:', err)
     } finally {
       setIsFetching(false)
     }
@@ -218,14 +189,7 @@ export default function PostForm() {
           disabled={isFetching || !targetProfile.trim()}
           className="p-2 bg-green-500 text-white rounded disabled:opacity-50"
         >
-          {isFetching ? 'Fetching...' : 'Fetch & Save'}
-        </button>
-        <button 
-          onClick={handleLookupProfile}
-          disabled={isFetching || !targetProfile.trim()}
-          className="p-2 bg-yellow-500 text-white rounded disabled:opacity-50"
-        >
-          {isFetching ? 'Looking up...' : 'Lookup Only'}
+          {isFetching ? 'Fetching...' : 'Get Profile'}
         </button>
       </div>
 

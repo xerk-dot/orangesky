@@ -69,3 +69,19 @@ model VerificationToken {
   @@unique([identifier, token])
   @@map("orangesky_verification_token")
 }
+
+model BlueskyUser {
+  id              String    @id @default(cuid())
+  did             String    @unique
+  handle          String
+  displayName     String?
+  bio             String?   // Optional bio text
+  numOfFollowers  Int       @default(0)
+  numOfFollowing  Int       @default(0)
+  isAnalyzed      Boolean   @default(false)
+  isIndividual    Float     @default(0) // 0 to 1
+  isMale          Float     @default(0) // 0 to 1
+  updatedAt       DateTime  @updatedAt
+
+  @@map("orangesky_bluesky_user")
+}
