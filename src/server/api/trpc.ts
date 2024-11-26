@@ -7,9 +7,11 @@
  * need to use are documented accordingly near the end.
  */
 
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { Session } from "next-auth";
+import { getSession } from "next-auth/react";
 
 import { db } from "~/server/db";
 
@@ -27,11 +29,13 @@ import { db } from "~/server/db";
  */
 interface CreateContextOptions {
   headers: Headers;
+  session?: Session;
 }
 
 export const createTRPCContext = async (opts: CreateContextOptions) => {
   return {
     db,
+    session: opts.session,
     ...opts,
   };
 };
@@ -126,7 +130,6 @@ export const protectedProcedure = t.procedure
     }
     return next({
       ctx: {
-        // infers the `session` as non-nullable
         session: { ...ctx.session, user: ctx.session.user },
       },
     });
