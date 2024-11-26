@@ -1,8 +1,8 @@
-import { prisma } from "~/server/db";
+import { db } from "~/server/db";
 
 export async function GET() {
   try {
-    const count = await prisma.blueskyUser.count();
+    const count = await db.blueskyUser.count();
     return Response.json({ count });
   } catch (error) {
     console.error('Error getting count:', error);

@@ -2,7 +2,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 
-import { prisma } from "~/server/db";
+import { db } from "~/server/db";
 
 /**
  * Module augmentation for `next-auth` types
@@ -16,7 +16,7 @@ declare module "next-auth" {
 }
 
 export const authConfig = {
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(db),
   providers: [
     DiscordProvider({
       clientId: process.env.AUTH_DISCORD_ID ?? "",

@@ -1,5 +1,5 @@
 import { BskyAgent } from '@atproto/api'
-import { prisma } from '~/server/db'
+import { db } from '~/server/db'
 import { z } from 'zod'
 
 // Define request body schema
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
         }, { status: 400 });
       }
 
-      const user = await prisma.blueskyUser.upsert({
+      const user = await db.blueskyUser.upsert({
         where: { did: profile.data.did },
         update: {
           handle: profile.data.handle,

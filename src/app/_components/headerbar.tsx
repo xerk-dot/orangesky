@@ -1,6 +1,8 @@
 'use client';
 import { useState, useEffect } from "react";
 import { JetBrains_Mono } from "next/font/google";
+import { HeaderStats } from "./HeaderStats";
+import { TRPCReactProvider } from "~/trpc/react";
 
 const jetbrains = JetBrains_Mono({
   subsets: ['latin'],
@@ -23,17 +25,30 @@ export function HeaderBar() {
   }, []);
 
   useEffect(() => {
-    const date = new Date();
-    const formattedDateParts = [
-      date.getDate(),
-      date.toLocaleString('en-GB', { month: 'long' }),
-      date.getFullYear(),
-      date.toLocaleString('en-GB', { weekday: 'short' }).toUpperCase()
-    ];
-    setFormattedDate(formattedDateParts.join(' '));
+    // Format date on client side only
+    const formatDate = () => {
+      const date = new Date();
+      const formattedDateParts = [
+        date.getDate(),
+        date.toLocaleString('en-GB', { month: 'long' }),
+        date.getFullYear(),
+        date.toLocaleString('en-GB', { weekday: 'short' }).toUpperCase()
+      ];
+      setFormattedDate(formattedDateParts.join(' '));
+    };
+
+    formatDate(); // Initial format
+    const interval = setInterval(formatDate, 1000); // Update every second
+    return () => clearInterval(interval);
   }, []);
 
+  // Initial empty state to prevent hydration mismatch
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
   return (
+    <TRPCReactProvider>
       <header className={`${jetbrains.className} flex flex-col mb-5 md:mb-10 w-full border-t border-b border-white`}>
         <div className="flex gap-2 items-center m-3 text-sm">
           <button 
@@ -49,7 +64,6 @@ export function HeaderBar() {
           <div className="flex flex-col md:flex-row md:justify-between">
             <div className="flex flex-col mb-4 md:mb-0">
               <span>Pages</span>
-              <a href="/about" className="text-orangered hover:underline">About Me</a>
               <a href="/archive" className="text-orangered hover:underline">Archive</a>
               <a href="/changelog" className="text-orangered hover:underline">Changelog</a>
               <a href="/resources" className="text-orangered hover:underline">Resources</a>
@@ -73,14 +87,15 @@ export function HeaderBar() {
             </div>
             <div className="flex flex-col text-right text-white">
               <span>Stats</span>
+              <HeaderStats />
               <span>News Daily: ~142.8</span>
               <span>News Total: 857</span>
               <span>Readers Qtly: 12.4K</span>
-
               <span className="mt-2 text-orangered hover:underline">Acknowledgements</span>
             </div>
           </div>
         </nav>
       </header>
+    </TRPCReactProvider>
   );
 }
