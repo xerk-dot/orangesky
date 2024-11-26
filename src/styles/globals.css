@@ -8,13 +8,23 @@
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     -webkit-tap-highlight-color: transparent;
     color-scheme: light;
-    /* note: must keep in sync with `theme-color` in `theme-effect.ts` */
+    /* Chart colors */
+    --chart-1: 16 100% 50%;  /* orangered */
+    --chart-2: 28 100% 50%;  /* orange */
+    --chart-3: 22 100% 60%;
+    --chart-4: 25 100% 70%;
+    --chart-5: 31 100% 80%;
     @apply bg-[#fcfcfc];
   }
 
   :root.dark {
     color-scheme: dark;
-    /* note: must keep in sync with `theme-color` in `theme-effect.ts` */
+    /* Chart colors for dark mode */
+    --chart-1: 16 100% 50%;  /* orangered */
+    --chart-2: 28 100% 50%;  /* orange */
+    --chart-3: 22 100% 60%;
+    --chart-4: 25 100% 70%;
+    --chart-5: 31 100% 80%;
     @apply bg-[#111];
   }
 

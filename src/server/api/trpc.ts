@@ -7,12 +7,11 @@
  * need to use are documented accordingly near the end.
  */
 
-import { initTRPC, TRPCError } from "@trpc/server";
+import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-import { auth } from "~/server/auth";
-import { prisma } from "~/server/db";
+import { db } from "~/server/db";
 
 /**
  * 1. CONTEXT
@@ -26,12 +25,13 @@ import { prisma } from "~/server/db";
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const session = await auth();
+interface CreateContextOptions {
+  headers: Headers;
+}
 
+export const createTRPCContext = async (opts: CreateContextOptions) => {
   return {
-    prisma,
-    session,
+    db,
     ...opts,
   };
 };

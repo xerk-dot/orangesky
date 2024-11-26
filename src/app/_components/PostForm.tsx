@@ -114,9 +114,9 @@ export default function PostForm() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow">
+    <div className="max-w-md mx-auto p-6 bg-transparent border border-white">
       <div className="mb-4">
-        <label htmlFor="profile" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="profile" className="block text-sm font-mono text-white mb-2">
           Bluesky Handle
         </label>
         <input
@@ -125,13 +125,13 @@ export default function PostForm() {
           value={targetProfile}
           onChange={(e) => setTargetProfile(e.target.value)}
           placeholder="e.g., username.bsky.social"
-          className="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+          className="w-full p-2 bg-transparent border border-white text-orangered font-mono focus:outline-none focus:border-orangered"
           disabled={isFetching}
         />
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded text-sm">
+        <div className="mb-4 p-3 border border-red-500 text-red-500 font-mono text-sm">
           {error}
         </div>
       )}
@@ -139,7 +139,7 @@ export default function PostForm() {
       <button
         onClick={handleFetchProfile}
         disabled={isFetching || !targetProfile.trim()}
-        className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+        className="w-full bg-transparent border border-white text-orangered p-2 font-mono hover:bg-orangered hover:text-white disabled:opacity-50 disabled:cursor-not-allowed mb-4 transition-colors"
       >
         {isFetching ? 'Fetching Profile...' : 'Fetch Profile'}
       </button>
@@ -148,15 +148,11 @@ export default function PostForm() {
         <button
           onClick={handleAnalyzeConnections}
           disabled={isAnalyzing}
-          className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-transparent border border-white text-white p-2 font-mono hover:bg-white hover:text-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isAnalyzing ? 'Analyzing Connections...' : `Analyze ${lastAddedProfile}'s Connections`}
         </button>
       )}
-
-      <div className="mt-4 text-center text-sm text-gray-600">
-        Total profiles in database: {totalRows}
-      </div>
     </div>
   );
 } 
