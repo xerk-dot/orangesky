@@ -1,7 +1,7 @@
 'use client';
 
 import { Area, AreaChart, CartesianGrid, XAxis, ResponsiveContainer } from "recharts";
-import { ChartConfig, ChartTooltip, ChartTooltipContent } from "./chart";
+import { type ChartConfig } from "./chart";
 
 interface ClientChartProps {
   data: Array<{ month: string; desktop: number; mobile: number }>;
@@ -27,10 +27,10 @@ export function ClientChart({ data, config }: ClientChartProps) {
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            tickFormatter={(value) => value.slice(0, 3)}
+            tickFormatter={(value: string) => value.slice(0, 3)}
             fontSize={12}
           />
-          <ChartTooltip content={<ChartTooltipContent />} />
+
           <defs>
             <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#ff4500" stopOpacity={0.8} />
