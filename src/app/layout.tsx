@@ -6,12 +6,13 @@ import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 import { HeaderBar } from "./_components/headerbar";
 import ClientOnly from "./_components/ClientOnly";
+import { BackgroundSlider } from "./_components/BackgroundSlider";
 
 import { TRPCReactProvider } from "~/trpc/react";
 
 export const metadata: Metadata = {
   title: "OrangeSky",
-  description: "OrangeSky is a Blue Sky observability platform",
+  description: "OrangeSky is a BlueSky observability platform",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
@@ -25,6 +26,9 @@ export default function RootLayout({
         <ClientOnly>
           <HeaderBar />
         </ClientOnly>
+
+        <BackgroundSlider />
+
         <TRPCReactProvider>{children}</TRPCReactProvider>
         <Footer />
       </body>
