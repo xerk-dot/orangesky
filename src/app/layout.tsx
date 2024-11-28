@@ -23,12 +23,9 @@ export default function RootLayout({
     <html lang="en" className={`${GeistSans.variable}`}>
       <body>
         <Header />
-        <ClientOnly>
-          <HeaderBar />
-        </ClientOnly>
 
-        <BackgroundSlider />
-
+{/*         <BackgroundSlider />
+ */}
         <TRPCReactProvider>{children}</TRPCReactProvider>
         <Footer />
       </body>
