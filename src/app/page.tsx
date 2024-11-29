@@ -1,7 +1,7 @@
 import { auth } from "~/server/auth";
 import { HydrateClient } from "~/trpc/server";
 import PostForm from './_components/PostForm';
-import SortableList from './_components/SortableList';
+import SortableList from './_components/main-page_ui/SortableList';
 
 export default async function Home() {
   return (

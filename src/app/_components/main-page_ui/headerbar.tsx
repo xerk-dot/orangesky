@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from "react";
 import { JetBrains_Mono } from "next/font/google";
-import { HeaderStats } from "./HeaderStats";
+import { HeaderStats } from "../main-page_ui/HeaderStats";
 import { TRPCReactProvider } from "~/trpc/react";
 
 const jetbrains = JetBrains_Mono({
