@@ -3,7 +3,8 @@ const Title = () => {
     <div style={{
       border: '2px solid white',
       padding: '10px',
-      display: 'inline-block'
+      display: 'inline-block',
+      margin: '20px'
     }}>
       <h1 style={{ 
         fontSize: 'calc(100vw / 10)', 
@@ -12,9 +13,15 @@ const Title = () => {
         fontFamily: 'JetBrains Mono', 
         fontWeight: 'bold', 
         lineHeight: '1', 
-        margin: '0'
+        margin: '0',
+        padding: '5px'
       }}>
-        Follow All<br />Your Followers
+        <span style={{ 
+          padding: '2px', 
+          margin: '5px'
+        }}>
+          Follow All
+        </span><br />Your Followers
       </h1>
     </div>
   );
