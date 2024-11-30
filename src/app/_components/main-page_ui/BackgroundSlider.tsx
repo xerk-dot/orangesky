@@ -32,13 +32,15 @@ export function BackgroundSlider() {
                 top: '20%', // Adjusted top position to center the image
                 left: '20%', // Adjusted left position to center the image
                 zIndex: -1,
+                opacity: .7,// Reduced opacity for less opacity only in light mode
             }}
             key={currentImage}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            animate={{ opacity: 0.5 }} // Adjusted animate opacity for less opacity
             exit={{ opacity: 0 }}
             transition={{ duration: 1 }}
         >
         </motion.div>
+        
     );
 } 

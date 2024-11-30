@@ -14,7 +14,7 @@ export function Header() {
           href="/about"
           className="inline-flex hover:bg-gray-200 dark:hover:bg-[#313131] active:bg-gray-300 dark:active:bg-[#242424] rounded-sm p-2 transition-[background-color]"
         >
-          About
+          about
         </Link>
         <a
           href="https://bsky.app/profile/orangedev.bsky.social"
@@ -23,7 +23,7 @@ export function Header() {
         >
           <BlueskyIcon style={{ marginRight: 4 }} />
           <div className="flex flex-col">
-            <span>Follow <span className="hidden md:inline">me</span></span>
+            <span>follow <span className="hidden md:inline">me</span></span>
           </div>
         </a>
       </nav>

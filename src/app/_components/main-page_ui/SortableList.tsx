@@ -54,7 +54,7 @@ const SortableList = () => {
   return (
     <div 
       ref={listRef}
-      className="fixed bottom-0 right-0 m-4 max-h-[90vh] overflow-y-auto z-50"
+      className="fixed bottom-0 right-0 m-4 max-h-[90vh] overflow-y-auto z-40"
     >
       {users.map((user, index) => (
         <Link
