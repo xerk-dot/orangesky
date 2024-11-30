@@ -13,7 +13,7 @@ export function Logo() {
   return (
     <span className={`text-4xl dark:text-orangered block ${jetBrainsMono.className} font-bold`}>
   {pathname === "/" ? (
-        <span className="cursor-default pr-2">orangesky</span>
+        <span className="cursor-default pr-2 text-light-text dark:text-dark-text">orangesky</span>
       ) : (
         <Link
           href="/"

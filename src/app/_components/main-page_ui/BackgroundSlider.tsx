@@ -21,15 +21,16 @@ export function BackgroundSlider() {
 
     return (
         <motion.div
+            className="transition-all duration-500 ease-in-out filter"
             style={{
                 backgroundImage: `url(${images[currentImage]})`,
-                backgroundSize: 'contain',
+                backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                height: '50vh',
-                width: '50%',
+                height: '60vh', // Increased height by 25%
+                width: '60vh', // Increased width by 25%
                 position: 'absolute',
-                top: '25%',
-                left: '25%',
+                top: '20%', // Adjusted top position to center the image
+                left: '20%', // Adjusted left position to center the image
                 zIndex: -1,
             }}
             key={currentImage}
@@ -38,8 +39,6 @@ export function BackgroundSlider() {
             exit={{ opacity: 0 }}
             transition={{ duration: 1 }}
         >
-            {/* Gradient Overlay */}
-            <div className="gradient-overlay" />
         </motion.div>
     );
 } 

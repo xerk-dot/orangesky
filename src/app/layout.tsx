@@ -8,7 +8,7 @@ import { HeaderBar } from "./_components/main-page_ui/headerbar";
 import ClientOnly from "./_components/ClientOnly";
 import { BackgroundSlider } from "./_components/main-page_ui/BackgroundSlider";
 import Title from "./_components/Title";
-
+import SortableList from "./_components/main-page_ui/SortableList";
 import { TRPCReactProvider } from "~/trpc/react";
 
 export const metadata: Metadata = {
@@ -27,6 +27,9 @@ export default function RootLayout({
         <Title />
         
         <TRPCReactProvider>{children}</TRPCReactProvider>
+        
+        <BackgroundSlider />
+        <SortableList />
         <Footer />
       </body>
     </html>
