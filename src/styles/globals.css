@@ -50,13 +50,12 @@
 
 /* Default opacity for images in BackgroundSlider */
 .background-slider img {
-    opacity: 1; /* Full opacity by default */
+  opacity: 1; /* Full opacity by default */
 }
 
 /* Lighter opacity for images in light mode */
 @media (prefers-color-scheme: light) {
-    .background-slider img {
-        opacity: 0.5; /* Less opacity for light mode */
-    }
+  .background-slider img {
+      opacity: 0.5; /* Less opacity for light mode */
+  }
 }
-

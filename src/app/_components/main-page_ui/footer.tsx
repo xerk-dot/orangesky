@@ -14,19 +14,33 @@ function GitHubIcon() {
 }
 
 export function Footer() {
+  const triangleLength = 30;
   return (
-    <footer className="fixed bottom-0 left-0 right-0 p-6 pt-3 pb-6 flex text-xs text-center dark:text-gray-400 text-gray-500 font-mono z-1000">
+    <footer className="z-50 fixed bottom-0 left-0 right-0 p-6 pt-3 pb-6 flex text-xs text-center dark:text-gray-400 text-gray-500 font-mono z-1000">
       <div className="grow text-left">
         <Link href="https://github.com/xerk-dot" target="_blank" className="flex items-center">
           <GitHubIcon />
           xerkdot
         </Link>
-        
       </div>
-      <div>
-        <Link href="https://github.com/xerk-dot/orangesky" target="_blank">
-          Source
-        </Link>
+      <div className="relative">
+        <a href="https://github.com/xerk-dot/orangesky" target="_blank" className="relative z-10 flex items-center justify-center">
+          <div 
+            className={`absolute 
+                       right-0 
+                       bottom-0 
+                       w-16 
+                       h-16
+                       bg-[#fcfcfc] 
+                       dark:bg-[#111]
+                       shadow-lg
+                       z-8
+                       filter: drop-shadow(0 0 10px white);`}
+            style={{ margin: 0 }}
+          >
+            <span className="z-100 absolute bottom-0 right-0">source</span>
+          </div>
+        </a>
       </div>
     </footer>
   );

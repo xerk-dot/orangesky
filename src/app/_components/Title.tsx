@@ -20,8 +20,8 @@ const Title = () => {
           padding: '2px', 
           margin: '5px'
         }}>
-          Follow All
-        </span><br />Your Followers
+          follow all
+        </span><br />your followers
       </h1>
     </div>
   );
