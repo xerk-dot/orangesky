@@ -24,12 +24,11 @@ export default function RootLayout({
     <html lang="en" className={`${GeistSans.variable}`}>
       <body>
         <Header />
-        <Title />
         
         <TRPCReactProvider>{children}</TRPCReactProvider>
         
         <BackgroundSlider />
-        <SortableList />
+        {/* <SortableList /> */}
         <Footer />
       </body>
     </html>

@@ -1,10 +1,13 @@
+import { WhyDoThis } from './main-page_ui/whyDoThis';
+
 const Title = () => {
   return (
     <div style={{
       border: '2px solid var(--border-color)',
       padding: '10px',
       display: 'inline-block',
-      margin: '20px'
+      margin: '20px',
+      position: 'relative'
     }}>
       <h1 style={{ 
         fontSize: 'calc(100vw / 10)', 
@@ -20,12 +23,19 @@ const Title = () => {
           padding: '2px', 
           margin: '5px'
         }}>
-          follow all
-        </span><br />your followers
+          follow me back
+        </span><br /> 
       </h1>
+      <div style={{
+        position: 'absolute',
+        
+        bottom: '-30px',
+        right: '-20px'
+      }}>
+        <WhyDoThis />
+      </div>
     </div>
   );
 };
 
 export default Title; 
-
